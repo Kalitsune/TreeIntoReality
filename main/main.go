@@ -31,7 +31,7 @@ func makeTree(treeOutput string) {
 		return
 	}
 
-	printTree(root, "")
+	confirmTree(root)
 }
 
 type Node struct {
@@ -101,15 +101,39 @@ func parseTree(treeOutput string) (*Node, error) {
 	return root, nil
 }
 
-// printTree recursively prints the tree structure for visualization.
-func printTree(node *Node, prefix string) {
-	if node == nil {
-		return
+func confirmTree(node *Node) bool {
+
+	success := true
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Parsing Successful, is that alright?").
+				Description(printTree(node, "")).
+				Value(&success),
+		),
+	).Run()
+	if err != nil {
+		return false
 	}
 
-	fmt.Println(prefix + node.Name)
-	for _, child := range node.Children {
-		childPrefix := prefix + "    "
-		printTree(child, childPrefix)
+	return success
+}
+
+// printTree recursively prints the tree structure for visualization.
+func printTree(node *Node, prefix string) string {
+	if node == nil {
+		return ""
 	}
+
+	res := ""
+	if len(node.Name) < 2 {
+		res = prefix + node.Name + "\n"
+	} else {
+		res = prefix + " " + node.Name + "\n"
+	}
+	for _, child := range node.Children {
+		childPrefix := prefix + "────"
+		res += printTree(child, childPrefix)
+	}
+	return res
 }
