@@ -31,7 +31,10 @@ func makeTree(treeOutput string) {
 		return
 	}
 
-	confirmTree(root)
+	if !confirmTree(root) {
+		fmt.Println("Oops! Cancelling...")
+		return
+	}
 }
 
 type Node struct {
@@ -107,8 +110,10 @@ func confirmTree(node *Node) bool {
 	err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().
-				Title("Parsing Successful, is that alright?").
+				Title("Parsing complete.").
 				Description(printTree(node, "")).
+				Affirmative("Sounds about right!").
+				Negative("Hold on...").
 				Value(&success),
 		),
 	).Run()
