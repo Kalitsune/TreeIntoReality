@@ -64,7 +64,7 @@ func parseTree(treeOutput string) (*Node, error) {
 			Name: line[depth:],
 		}
 
-		depth /= 8 // Each level is 4 characters of indentation but because we work with uint8s, it's somehow the double.
+		depth = len(strings.Split(line, "   "))
 		// Adjust the stack based on depth.
 		if depth > lastDepth {
 			// Child node, add to the last node in the stack.
@@ -134,7 +134,6 @@ func CreateTree(node *Node, prefix string, defaultMode *string) error {
 	if node.Name != "." {
 		// create the file/Folder
 		if node.IsDir {
-			fmt.Println(prefix + node.Name)
 			err := os.Mkdir(prefix+node.Name, os.ModePerm)
 			if err != nil {
 				return err
