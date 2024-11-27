@@ -1,30 +1,20 @@
-package main
+package lib
 
 import (
 	"bufio"
 	"fmt"
-	"github.com/charmbracelet/huh"
+	"os"
 	"slices"
 	"strings"
 )
 
-func main() {
-	tree := ""
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewText().
-				Title("Insert your tree output:").
-				Value(&tree),
-		),
-	).Run()
-	if err != nil {
-		return
-	}
-
-	makeTree(tree)
+type Node struct {
+	Name     string
+	Children []*Node
+	IsDir    bool
 }
 
-func makeTree(treeOutput string) {
+func MakeTree(treeOutput string) {
 	root, err := parseTree(treeOutput)
 	if err != nil {
 		fmt.Println("Error parsing tree output:", err)
@@ -35,12 +25,12 @@ func makeTree(treeOutput string) {
 		fmt.Println("Oops! Cancelling...")
 		return
 	}
-}
 
-type Node struct {
-	Name     string
-	Children []*Node
-	IsDir    bool
+	mode := ""
+	err = CreateTree(root, "", &mode)
+	if err != nil {
+		return
+	}
 }
 
 // parseTree parses the output of a `tree` command and returns the root node of the tree structure.
@@ -77,10 +67,10 @@ func parseTree(treeOutput string) (*Node, error) {
 		depth /= 8 // Each level is 4 characters of indentation but because we work with uint8s, it's somehow the double.
 		// Adjust the stack based on depth.
 		if depth > lastDepth {
-			newNode.IsDir = true
 			// Child node, add to the last node in the stack.
 			if len(nodeStack) > 0 {
 				parent := nodeStack[len(nodeStack)-1]
+				parent.IsDir = true
 				parent.Children = append(parent.Children, newNode)
 			}
 		} else {
@@ -104,41 +94,67 @@ func parseTree(treeOutput string) (*Node, error) {
 	return root, nil
 }
 
-func confirmTree(node *Node) bool {
-
-	success := true
-	err := huh.NewForm(
-		huh.NewGroup(
-			huh.NewConfirm().
-				Title("Parsing complete.").
-				Description(printTree(node, "")).
-				Affirmative("Sounds about right!").
-				Negative("Hold on...").
-				Value(&success),
-		),
-	).Run()
-	if err != nil {
-		return false
-	}
-
-	return success
-}
-
 // printTree recursively prints the tree structure for visualization.
 func printTree(node *Node, prefix string) string {
 	if node == nil {
 		return ""
 	}
 
+	name := node.Name
+	if node.IsDir {
+		name += "/"
+	}
+
 	res := ""
 	if len(node.Name) < 2 {
-		res = prefix + node.Name + "\n"
+		res = prefix + name + "\n"
 	} else {
-		res = prefix + " " + node.Name + "\n"
+		res = prefix + " " + name + "\n"
 	}
 	for _, child := range node.Children {
 		childPrefix := prefix + "────"
 		res += printTree(child, childPrefix)
 	}
 	return res
+}
+
+func TouchFile(name string) error {
+	file, err := os.OpenFile(name, os.O_RDONLY|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return file.Close()
+}
+
+func CreateTree(node *Node, prefix string, defaultMode *string) error {
+	if node == nil {
+		return nil
+	}
+
+	if node.Name != "." {
+		// create the file/Folder
+		if node.IsDir {
+			fmt.Println(prefix + node.Name)
+			err := os.Mkdir(prefix+node.Name, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := TouchFile(prefix + node.Name)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, child := range node.Children {
+		childPrefix := prefix + node.Name + "/"
+
+		err := CreateTree(child, childPrefix, defaultMode)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
