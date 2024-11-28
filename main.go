@@ -11,7 +11,8 @@ func main() {
 		huh.NewGroup(
 			huh.NewText().
 				Title("Insert your tree output:").
-				Value(&tree),
+				Value(&tree).
+        CharLimit(-1),
 		),
 	).Run()
 	if err != nil {
