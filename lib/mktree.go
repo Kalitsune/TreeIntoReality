@@ -6,13 +6,9 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"treeintoreality/lib/templates"
+	"treeintoreality/types"
 )
-
-type Node struct {
-	Name     string
-	Children []*Node
-	IsDir    bool
-}
 
 func MakeTree(treeOutput string) {
 	root, err := parseTree(treeOutput)
@@ -34,11 +30,11 @@ func MakeTree(treeOutput string) {
 }
 
 // parseTree parses the output of a `tree` command and returns the root node of the tree structure.
-func parseTree(treeOutput string) (*Node, error) {
+func parseTree(treeOutput string) (*types.Node, error) {
 	scanner := bufio.NewScanner(strings.NewReader(treeOutput))
-	root := &Node{Name: ".", IsDir: true} // Root node
-	nodeStack := []*Node{root}            // Stack to manage hierarchy
-	lastDepth := -1                       // Track depth of the previous line
+	root := &types.Node{Name: ".", IsDir: true} // Root node
+	nodeStack := []*types.Node{root}            // Stack to manage hierarchy
+	lastDepth := -1                             // Track depth of the previous line
 
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -60,7 +56,7 @@ func parseTree(treeOutput string) (*Node, error) {
 		}
 
 		// Create a new node.
-		newNode := &Node{
+		newNode := &types.Node{
 			Name: line[depth:],
 		}
 
@@ -95,7 +91,7 @@ func parseTree(treeOutput string) (*Node, error) {
 }
 
 // printTree recursively prints the tree structure for visualization.
-func printTree(node *Node, prefix string) string {
+func printTree(node *types.Node, prefix string) string {
 	if node == nil {
 		return ""
 	}
@@ -118,15 +114,20 @@ func printTree(node *Node, prefix string) string {
 	return res
 }
 
-func TouchFile(name string) error {
-	file, err := os.OpenFile(name, os.O_RDONLY|os.O_CREATE, os.ModePerm)
+func TouchFile(node *types.Node, prefix string) error {
+	file, err := os.OpenFile(prefix+node.Name, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
+
+	if strings.HasSuffix(node.Name, ".cs") {
+		_, _ = file.WriteString(templates.CsTemplate(node, prefix))
+	}
+
 	return file.Close()
 }
 
-func CreateTree(node *Node, prefix string, defaultMode *string) error {
+func CreateTree(node *types.Node, prefix string, defaultMode *string) error {
 	if node == nil {
 		return nil
 	}
@@ -139,7 +140,7 @@ func CreateTree(node *Node, prefix string, defaultMode *string) error {
 				return err
 			}
 		} else {
-			err := TouchFile(prefix + node.Name)
+			err := TouchFile(node, prefix)
 			if err != nil {
 				return err
 			}

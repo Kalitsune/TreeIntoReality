@@ -1,8 +1,11 @@
 package lib
 
-import "github.com/charmbracelet/huh"
+import (
+	"github.com/charmbracelet/huh"
+	"treeintoreality/types"
+)
 
-func confirmTree(node *Node) bool {
+func confirmTree(node *types.Node) bool {
 
 	success := true
 	err := huh.NewForm(
