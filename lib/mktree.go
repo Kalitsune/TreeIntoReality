@@ -10,7 +10,7 @@ import (
 	"treeintoreality/types"
 )
 
-func MakeTree(treeOutput string) {
+func MakeTree(rootDir string, treeOutput string) {
 	root, err := parseTree(treeOutput)
 	if err != nil {
 		fmt.Println("Error parsing tree output:", err)
@@ -23,7 +23,7 @@ func MakeTree(treeOutput string) {
 	}
 
 	mode := ""
-	err = CreateTree(root, "", &mode)
+	err = CreateTree(root, rootDir, "", &mode)
 	if err != nil {
 		return
 	}
@@ -114,8 +114,8 @@ func printTree(node *types.Node, prefix string) string {
 	return res
 }
 
-func TouchFile(node *types.Node, prefix string) error {
-	file, err := os.OpenFile(prefix+node.Name, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+func TouchFile(node *types.Node, rootDir string, prefix string) error {
+	file, err := os.OpenFile(rootDir+prefix+node.Name, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -127,30 +127,32 @@ func TouchFile(node *types.Node, prefix string) error {
 	return file.Close()
 }
 
-func CreateTree(node *types.Node, prefix string, defaultMode *string) error {
+func CreateTree(node *types.Node, root string, prefix string, defaultMode *string) error {
 	if node == nil {
 		return nil
 	}
 
+	fmt.Println(prefix)
+
 	if node.Name != "." {
 		// create the file/Folder
 		if node.IsDir {
-			err := os.Mkdir(prefix+node.Name, os.ModePerm)
+			err := os.Mkdir(root+prefix+node.Name, os.ModePerm)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := TouchFile(node, prefix)
+			err := TouchFile(node, root, prefix)
 			if err != nil {
 				return err
 			}
 		}
+
+		prefix = prefix + node.Name + "/"
 	}
 
 	for _, child := range node.Children {
-		childPrefix := prefix + node.Name + "/"
-
-		err := CreateTree(child, childPrefix, defaultMode)
+		err := CreateTree(child, root, prefix, defaultMode)
 		if err != nil {
 			return err
 		}
