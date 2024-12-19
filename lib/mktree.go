@@ -10,7 +10,7 @@ import (
 	"treeintoreality/types"
 )
 
-func MakeTree(rootDir string, treeOutput string) {
+func MakeTree(rootDir string, treeOutput string, args *types.Args) {
 	root, err := parseTree(treeOutput)
 	if err != nil {
 		fmt.Println("Error parsing tree output:", err)
@@ -22,8 +22,7 @@ func MakeTree(rootDir string, treeOutput string) {
 		return
 	}
 
-	mode := ""
-	err = CreateTree(root, rootDir, "", &mode)
+	err = CreateTree(root, rootDir, "", args)
 	if err != nil {
 		return
 	}
@@ -127,24 +126,50 @@ func TouchFile(node *types.Node, rootDir string, prefix string) error {
 	return file.Close()
 }
 
-func CreateTree(node *types.Node, root string, prefix string, defaultMode *string) error {
+func enforceArgs(path string, args *types.Args) bool {
+	if _, err := os.Stat(path); err == nil {
+		if args.Overwrite && !strings.HasSuffix(path, "/") {
+			err = os.Remove(path)
+			return err == nil
+		} else {
+			return false
+		}
+	}
+	return true
+}
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+func CreateTree(node *types.Node, root string, prefix string, args *types.Args) error {
 	if node == nil {
 		return nil
 	}
 
-	fmt.Println(prefix)
-
 	if node.Name != "." {
 		// create the file/Folder
 		if node.IsDir {
-			err := os.Mkdir(root+prefix+node.Name, os.ModePerm)
-			if err != nil {
-				return err
+			if !pathExists(root + prefix + node.Name + "/") {
+				err := os.Mkdir(root+prefix+node.Name, os.ModePerm)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
-			err := TouchFile(node, root, prefix)
-			if err != nil {
-				return err
+			exists := pathExists(root + prefix + node.Name)
+
+			if exists && args.Overwrite {
+				err := os.Remove(root + prefix + node.Name)
+				if err != nil {
+					return err
+				}
+			}
+
+			if !exists || args.Overwrite {
+				err := TouchFile(node, root, prefix)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -152,7 +177,7 @@ func CreateTree(node *types.Node, root string, prefix string, defaultMode *strin
 	}
 
 	for _, child := range node.Children {
-		err := CreateTree(child, root, prefix, defaultMode)
+		err := CreateTree(child, root, prefix, args)
 		if err != nil {
 			return err
 		}
