@@ -1,5 +1,6 @@
 package types
 
 type Args struct {
-	Overwrite bool
+	Overwrite   bool
+	TrustParser bool
 }
