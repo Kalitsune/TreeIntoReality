@@ -107,17 +107,6 @@ func TouchFile(node *types.Node, rootDir string, prefix string) error {
 	return file.Close()
 }
 
-func enforceArgs(path string, args *types.Args) bool {
-	if _, err := os.Stat(path); err == nil {
-		if args.Overwrite && !strings.HasSuffix(path, "/") {
-			err = os.Remove(path)
-			return err == nil
-		} else {
-			return false
-		}
-	}
-	return true
-}
 func pathExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
