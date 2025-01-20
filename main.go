@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/charmbracelet/huh"
 	"os"
 	"treeintoreality/lib"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	args := parseArgs()
-	
+
 	tree := ""
 	err := huh.NewForm(
 		huh.NewGroup(
@@ -29,7 +30,7 @@ func main() {
 		prefix = "."
 	}
 
-	lib.MakeTree(prefix+"/", tree, &args)
+	MakeTree(prefix+"/", tree, &args)
 }
 
 func parseArgs() types.Args {
@@ -39,4 +40,41 @@ func parseArgs() types.Args {
 	flag.Parse()
 
 	return args
+}
+
+func MakeTree(rootDir string, treeOutput string, args *types.Args) {
+	root, err := lib.ParseTree(treeOutput)
+	if err != nil {
+		fmt.Println("Error parsing tree output:", err)
+		return
+	}
+
+	if !confirmTree(root) {
+		fmt.Println("Oops! Cancelling...")
+		return
+	}
+
+	err = lib.CreateTree(root, rootDir, "", args)
+	if err != nil {
+		return
+	}
+}
+
+func confirmTree(node *types.Node) bool {
+	success := true
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Parsing complete.").
+				Description(lib.PrintTree(node, "")).
+				Affirmative("Sounds about right!").
+				Negative("Hold on...").
+				Value(&success),
+		),
+	).Run()
+	if err != nil {
+		return false
+	}
+
+	return success
 }

@@ -2,7 +2,6 @@ package lib
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"slices"
 	"strings"
@@ -10,26 +9,8 @@ import (
 	"treeintoreality/types"
 )
 
-func MakeTree(rootDir string, treeOutput string, args *types.Args) {
-	root, err := parseTree(treeOutput)
-	if err != nil {
-		fmt.Println("Error parsing tree output:", err)
-		return
-	}
-
-	if !confirmTree(root) {
-		fmt.Println("Oops! Cancelling...")
-		return
-	}
-
-	err = CreateTree(root, rootDir, "", args)
-	if err != nil {
-		return
-	}
-}
-
-// parseTree parses the output of a `tree` command and returns the root node of the tree structure.
-func parseTree(treeOutput string) (*types.Node, error) {
+// ParseTree parses the output of a `tree` command and returns the root node of the tree structure.
+func ParseTree(treeOutput string) (*types.Node, error) {
 	scanner := bufio.NewScanner(strings.NewReader(treeOutput))
 	root := &types.Node{Name: ".", IsDir: true} // Root node
 	nodeStack := []*types.Node{root}            // Stack to manage hierarchy
@@ -89,8 +70,8 @@ func parseTree(treeOutput string) (*types.Node, error) {
 	return root, nil
 }
 
-// printTree recursively prints the tree structure for visualization.
-func printTree(node *types.Node, prefix string) string {
+// PrintTree recursively prints the tree structure for visualization.
+func PrintTree(node *types.Node, prefix string) string {
 	if node == nil {
 		return ""
 	}
@@ -108,7 +89,7 @@ func printTree(node *types.Node, prefix string) string {
 	}
 	for _, child := range node.Children {
 		childPrefix := prefix + "────"
-		res += printTree(child, childPrefix)
+		res += PrintTree(child, childPrefix)
 	}
 	return res
 }
