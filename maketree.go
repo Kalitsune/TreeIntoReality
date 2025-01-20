@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/Kalitsune/treeintoreality/lib"
+	"github.com/Kalitsune/treeintoreality/types"
 	"github.com/charmbracelet/huh"
-	"treeintoreality/lib"
-	"treeintoreality/types"
 )
 
 func MakeTree(rootDir string, treeOutput string, args *types.Args) {

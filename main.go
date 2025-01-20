@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	"github.com/Kalitsune/treeintoreality/types"
 	"github.com/charmbracelet/huh"
 	"os"
-	"treeintoreality/types"
 )
 
 func main() {

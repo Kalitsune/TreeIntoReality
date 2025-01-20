@@ -2,11 +2,11 @@ package lib
 
 import (
 	"bufio"
+	"github.com/Kalitsune/treeintoreality/lib/templates"
+	"github.com/Kalitsune/treeintoreality/types"
 	"os"
 	"slices"
 	"strings"
-	"treeintoreality/lib/templates"
-	"treeintoreality/types"
 )
 
 // ParseTree parses the output of a `tree` command and returns the root node of the tree structure.

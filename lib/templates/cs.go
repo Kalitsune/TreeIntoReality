@@ -2,8 +2,8 @@ package templates
 
 import (
 	"fmt"
+	"github.com/Kalitsune/treeintoreality/types"
 	"strings"
-	"treeintoreality/types"
 )
 
 func CsTemplate(node *types.Node, prefix string) string {

@@ -1,4 +1,4 @@
-module treeintoreality
+module github.com/Kalitsune/treeintoreality
 
 go 1.22.9
 
